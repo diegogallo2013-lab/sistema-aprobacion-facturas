@@ -1,0 +1,1 @@
+package ar.com.crivelli.facturas.repository; import ar.com.crivelli.facturas.model.Proveedor; import org.springframework.data.jpa.repository.JpaRepository; public interface ProveedorRepository extends JpaRepository<Proveedor,Long>{}
