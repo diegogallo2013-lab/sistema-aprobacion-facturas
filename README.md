@@ -26,17 +26,7 @@ Proyecto académico para digitalizar la recepción, evaluación y aprobación de
 4. API disponible en `http://localhost:8080/api`.
 
 ## Pruebas
-Ejecutar `mvn test`.
+Ejecutar:
 
-## Endpoints principales
-- `GET /api/proveedores`
-- `POST /api/proveedores`
-- `GET /api/facturas`
-- `POST /api/facturas`
-- `GET /api/facturas/estado/{estado}`
-- `GET /api/facturas/proveedor/{proveedorId}`
-- `PUT /api/facturas/{id}/aprobar`
-- `PUT /api/facturas/{id}/rechazar`
-
-## Autor
-Diego Crivelli
+```bash
+mvn test
