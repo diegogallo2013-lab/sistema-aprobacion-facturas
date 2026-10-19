@@ -1,0 +1,202 @@
+@startuml
+title Sistema de Gestión y Aprobación de Facturas
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Aplicación" {
+
+    class MenuConsola {
+        - scanner : Scanner
+        - facturaService : FacturaService
+        - proveedorService : ProveedorService
+        - aprobacionService : AprobacionService
+
+        + mostrarMenu() : void
+        - registrarProveedor() : void
+        - registrarFactura() : void
+        - listarFacturas() : void
+        - buscarFactura() : void
+        - aprobarFactura() : void
+        - rechazarFactura() : void
+        - listarPendientes() : void
+        - ordenarPorImporte() : void
+        - mostrarFactura(factura : Factura) : void
+    }
+}
+
+package "Modelo" {
+
+    abstract class Usuario {
+        - id : Long
+        - nombre : String
+        - email : String
+
+        + Usuario(id : Long, nombre : String, email : String)
+        + getId() : Long
+        + getNombre() : String
+        + getEmail() : String
+        {abstract} + puedeAprobar(factura : Factura) : boolean
+        {abstract} + getRol() : String
+    }
+
+    class Gerente {
+        - LIMITE_APROBACION : BigDecimal
+
+        + Gerente(id : Long, nombre : String, email : String)
+        + puedeAprobar(factura : Factura) : boolean
+        + getRol() : String
+    }
+
+    class Director {
+        - LIMITE_APROBACION : BigDecimal
+
+        + Director(id : Long, nombre : String, email : String)
+        + puedeAprobar(factura : Factura) : boolean
+        + getRol() : String
+    }
+
+    class Proveedor {
+        - id : Long
+        - nombre : String
+
+        + Proveedor()
+        + Proveedor(nombre : String)
+        + getId() : Long
+        + getNombre() : String
+        + setNombre(nombre : String) : void
+    }
+
+    class Factura {
+        - id : Long
+        - proveedor : Proveedor
+        - importe : BigDecimal
+        - estado : EstadoFactura
+        - fecha : LocalDateTime
+
+        + Factura()
+        + getId() : Long
+        + getProveedor() : Proveedor
+        + setProveedor(proveedor : Proveedor) : void
+        + getImporte() : BigDecimal
+        + setImporte(importe : BigDecimal) : void
+        + getEstado() : EstadoFactura
+        + setEstado(estado : EstadoFactura) : void
+        + getFecha() : LocalDateTime
+        + setFecha(fecha : LocalDateTime) : void
+        + getNivelAprobacion() : String
+    }
+
+    enum EstadoFactura {
+        PENDIENTE
+        APROBADA
+        RECHAZADA
+    }
+}
+
+package "Servicios" {
+
+    class ProveedorService {
+        - proveedores : ProveedorRepository
+
+        + crear(nombre : String) : Proveedor
+        + listar() : List<Proveedor>
+        + buscarPorId(id : Long) : Proveedor
+    }
+
+    class FacturaService {
+        - facturas : FacturaRepository
+        - proveedores : ProveedorRepository
+
+        + listar() : List<Factura>
+        + buscarPorId(id : Long) : Factura
+        + porEstado(estado : EstadoFactura) : List<Factura>
+        + porProveedor(proveedorId : Long) : List<Factura>
+        + crear(proveedorId : Long, factura : Factura) : Factura
+        + cambiarEstado(id : Long, estado : EstadoFactura) : Factura
+        + ordenarPorImporte() : List<Factura>
+    }
+
+    class AprobacionService {
+        - facturas : FacturaRepository
+
+        + aprobar(facturaId : Long, usuario : Usuario) : Factura
+    }
+}
+
+package "Repositorios" {
+
+    interface ProveedorRepository {
+        <<JpaRepository>>
+    }
+
+    interface FacturaRepository {
+        <<JpaRepository>>
+
+        + findByEstado(estado : EstadoFactura) : List<Factura>
+        + findByProveedorId(proveedorId : Long) : List<Factura>
+    }
+}
+
+package "Controladores REST" {
+
+    class ProveedorController {
+        - repo : ProveedorRepository
+
+        + listar() : List<Proveedor>
+        + crear(proveedor : Proveedor) : ResponseEntity<Proveedor>
+    }
+
+    class FacturaController {
+        - service : FacturaService
+
+        + listar() : List<Factura>
+        + estado(estado : EstadoFactura) : List<Factura>
+        + proveedor(id : Long) : List<Factura>
+        + crear(proveedorId : Long, factura : Factura) : ResponseEntity<Factura>
+        + aprobar(id : Long) : Factura
+        + rechazar(id : Long) : Factura
+    }
+}
+
+Usuario <|-- Gerente
+Usuario <|-- Director
+
+Proveedor "1" <-- "0..*" Factura : proveedor
+Factura --> EstadoFactura : estado
+
+MenuConsola --> ProveedorService
+MenuConsola --> FacturaService
+MenuConsola --> AprobacionService
+MenuConsola ..> Gerente : crea
+MenuConsola ..> Director : crea
+
+ProveedorService --> ProveedorRepository
+FacturaService --> FacturaRepository
+FacturaService --> ProveedorRepository
+AprobacionService --> FacturaRepository
+AprobacionService --> Usuario : polimorfismo
+AprobacionService --> Factura
+
+ProveedorRepository ..> Proveedor
+FacturaRepository ..> Factura
+
+ProveedorController --> ProveedorRepository
+FacturaController --> FacturaService
+
+note right of Gerente
+Aprueba facturas de hasta
+$10.000.000 inclusive.
+end note
+
+note right of Director
+Aprueba facturas superiores
+a $10.000.000.
+end note
+
+note bottom of AprobacionService
+Utiliza Usuario como abstracción.
+En ejecución invoca la implementación
+polimórfica de Gerente o Director.
+end note
+
+@enduml
