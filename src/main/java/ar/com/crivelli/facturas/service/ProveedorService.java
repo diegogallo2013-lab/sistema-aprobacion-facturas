@@ -16,14 +16,27 @@ public class ProveedorService {
         this.proveedores = proveedores;
     }
 
-    public Proveedor crear(String nombre) {
+    public Proveedor crear(
+            String cuit,
+            String razonSocial,
+            String email,
+            String telefono) {
 
-        if (nombre == null || nombre.isBlank()) {
+        if (cuit == null || cuit.isBlank()) {
             throw new IllegalArgumentException(
-                    "El nombre del proveedor no puede estar vacio");
+                    "El CUIT del proveedor no puede estar vacio");
         }
 
-        Proveedor proveedor = new Proveedor(nombre);
+        if (razonSocial == null || razonSocial.isBlank()) {
+            throw new IllegalArgumentException(
+                    "La razon social del proveedor no puede estar vacia");
+        }
+
+        Proveedor proveedor = new Proveedor(
+                cuit,
+                razonSocial,
+                email,
+                telefono);
 
         return proveedores.save(proveedor);
     }

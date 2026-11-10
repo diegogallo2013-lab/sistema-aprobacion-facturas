@@ -6,6 +6,7 @@ import ar.com.crivelli.facturas.repository.FacturaRepository;
 import ar.com.crivelli.facturas.repository.ProveedorRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -81,7 +82,12 @@ public class FacturaService {
 
     public List<Factura> ordenarPorImporte() {
 
-        List<Factura> resultado = facturas.findAll();
+        /*
+         * ArrayList dinamico utilizado para crear una copia
+         * modificable de los resultados obtenidos desde MySQL.
+         */
+        ArrayList<Factura> resultado =
+                new ArrayList<>(facturas.findAll());
 
         resultado.sort(
                 Comparator.comparing(Factura::getImporte)
